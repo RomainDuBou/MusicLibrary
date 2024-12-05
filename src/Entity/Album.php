@@ -34,7 +34,6 @@ class Album
         $this->songs = new ArrayCollection();
     }
 
-    // Getters et Setters
 
     public function getId(): ?int
     {
