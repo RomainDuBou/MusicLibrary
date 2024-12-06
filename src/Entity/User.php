@@ -4,9 +4,10 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity]
-class User implements UserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,11 +23,13 @@ class User implements UserInterface
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
+    // Méthode requise par UserInterface depuis Symfony 5.3
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
+    // Pour rétrocompatibilité avec d'anciennes versions
     public function getUsername(): string
     {
         return (string) $this->email;
@@ -75,5 +78,6 @@ class User implements UserInterface
 
     public function eraseCredentials(): void
     {
+        // S'il y a des données sensibles stockées temporairement, nettoyez-les ici.
     }
 }
