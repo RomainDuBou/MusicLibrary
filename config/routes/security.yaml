@@ -1,3 +1,55 @@
-_security_logout:
-    resource: security.route_loader.logout
-    type: service
+security:
+    # Utiliser les hashers automatiques pour les mots de passe
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
+
+    # Configuration des providers (où récupérer les utilisateurs)
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    # Déclaration des différents firewalls pour contrôler l'accès aux routes
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # Firewall pour gérer l'authentification via un formulaire JSON (login)
+        login:
+            pattern:  ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # Firewall pour gérer l'inscription des utilisateurs (enregistrement)
+        register:
+            pattern: ^/api/register
+            stateless: true
+            anonymous: true
+
+        # Firewall pour les routes sécurisées nécessitant un token JWT
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+
+        # Firewall principal (utilisé par défaut)
+        main:
+            lazy: true
+            provider: app_user_provider
+            custom_authenticators:
+                - lexik_jwt_authentication.jwt_token_authenticator
+
+    # Déclaration des contrôles d'accès pour chaque route
+    access_control:
+        - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
